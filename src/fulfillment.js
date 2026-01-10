@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const minimatch = require('minimatch');
+const { getTemplateExpectations } = require('./template-expectations');
 
 /**
  * Intent Fulfillment Scorer
@@ -18,6 +19,7 @@ const minimatch = require('minimatch');
 function calculateFulfillment(intent, changedFiles, diffStats) {
   const template = intent.template || null;
   const expectations = template ? getTemplateExpectations(template) : null;
+
   
   let score = 70; // Base score
   const warnings = [];

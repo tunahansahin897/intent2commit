@@ -61,16 +61,46 @@ async function commitWithIntent() {
     console.log(chalk.green(`✓ Found ${analysis.filesChanged} file(s) with changes`));
     console.log(chalk.gray(`  +${analysis.insertions}/-${analysis.deletions} lines`));
 
-    // Step 3: Check alignment
-    console.log(chalk.cyan('\n→ Checking intent-change alignment...'));
-    const alignment = checkAlignment(intent, analysis);
-    displayAlignment(alignment);
+    // Step 3: Check fulfillment (with drift detection)
+    console.log(chalk.cyan('\n→ Checking intent fulfillment...'));
+    
+    const { calculateFulfillment, displayFulfillment } = require('./fulfillment');
+    const changedFiles = analysis.files || [];
+    const diffStats = {
+      insertions: analysis.insertions || 0,
+      deletions: analysis.deletions || 0
+    };
+    
+    const fulfillment = calculateFulfillment(intent, changedFiles, diffStats);
+    displayFulfillment(intent, fulfillment);
 
-    // Step 4: Generate commit message
-    const commitMessage = generateCommitMessage(intent, analysis, alignment);
+    // Step 4: Check if we should block
+    if (fulfillment.score < 50) {
+      console.log(chalk.red('\n❌ Fulfillment score too low'));
+      console.log(chalk.yellow('Consider:'));
+      console.log(chalk.yellow('  - Reviewing your changes'));
+      console.log(chalk.yellow('  - Updating your intent'));
+      console.log(chalk.yellow('  - Splitting into multiple commits'));
+      
+      const { shouldContinue } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'shouldContinue',
+          message: 'Continue anyway?',
+          default: false
+        }
+      ]);
+      
+      if (!shouldContinue) {
+        process.exit(0);
+      }
+    }
+
+    // Step 5: Generate commit message
+    const commitMessage = generateCommitMessage(intent, analysis, { score: fulfillment.score, level: fulfillment.level });
     displayCommitMessage(commitMessage);
 
-    // Step 5: Confirm with user
+    // Step 6: Confirm with user
     const { shouldCommit } = await inquirer.prompt([
       {
         type: 'confirm',
@@ -85,18 +115,18 @@ async function commitWithIntent() {
       process.exit(0);
     }
 
-    // Step 6: Create commit
+    // Step 7: Create commit
     console.log(chalk.cyan('\n→ Creating commit...'));
     const result = await createCommit(commitMessage);
     
     const commitHash = result.commit;
     console.log(chalk.green(`✓ Committed: ${commitHash}`));
 
-    // Step 7: Save to ledger
+    // Step 8: Save to ledger
     console.log(chalk.cyan('→ Saving to intent ledger...'));
-    saveToLedger(intent, commitHash, analysis, alignment);
+    saveToLedger(intent, commitHash, analysis, { score: fulfillment.score, level: fulfillment.level, driftDetected: fulfillment.driftDetected });
 
-    // Step 8: Clear intent cache
+    // Step 9: Clear intent cache
     clearIntent();
 
     console.log();
@@ -111,6 +141,7 @@ async function commitWithIntent() {
     process.exit(1);
   }
 }
+
 
 /**
  * Shows intent log - CLI handler
