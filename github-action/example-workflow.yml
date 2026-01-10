@@ -1,0 +1,33 @@
+name: Intent Fulfillment Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  check-intent-fulfillment:
+    runs-on: ubuntu-latest
+    name: Check Intent Fulfillment
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: Intent2Commit Fulfillment Check
+        id: fulfillment
+        uses: andorabilisim/intent2commit-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          min-fulfillment-score: 70
+          fail-on-low-fulfillment: false # Start lenient
+          fail-on-drift: false # Informational only
+          comment-on-pr: true
+
+      - name: Display Results
+        run: |
+          echo "Fulfillment Score: ${{ steps.fulfillment.outputs.fulfillment-score }}"
+          echo "Level: ${{ steps.fulfillment.outputs.fulfillment-level }}"
+          echo "Drift Detected: ${{ steps.fulfillment.outputs.drift-detected }}"
+          echo "Badge URL: ${{ steps.fulfillment.outputs.badge-url }}"

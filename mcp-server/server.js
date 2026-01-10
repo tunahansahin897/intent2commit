@@ -1,6 +1,15 @@
+#!/usr/bin/env node
+
+/**
+ * Intent2Commit MCP Server
+ * 
+ * Production-ready MCP server for AI coding tool integration.
+ * Supports: Cursor, Windsurf, Antigravity, Claude Desktop, Cline
+ */
+
 const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
-const { 
+const {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ListResourcesRequestSchema,
@@ -16,15 +25,13 @@ const { promisify } = require('util');
 
 const execAsync = promisify(exec);
 
-/**
- * Intent2Commit MCP Server Implementation
- */
 class Intent2CommitMCPServer {
   constructor(workspaceRoot) {
-    this.workspaceRoot = workspaceRoot || process.cwd();
+    this.workspaceRoot = workspaceRoot || process.env.WORKSPACE_ROOT || process.cwd();
+    
     this.server = new Server({
       name: 'intent2commit',
-      version: '1.0.0'
+      version: '2.0.0'
     }, {
       capabilities: {
         resources: {},
@@ -34,6 +41,11 @@ class Intent2CommitMCPServer {
     });
 
     this.setupHandlers();
+    this.logToStderr(`Intent2Commit MCP Server initialized (workspace: ${this.workspaceRoot})`);
+  }
+
+  logToStderr(message) {
+    console.error(`[Intent2Commit MCP] ${message}`);
   }
 
   setupHandlers() {
@@ -43,19 +55,19 @@ class Intent2CommitMCPServer {
         {
           uri: 'intent://current',
           name: 'Current Intent',
-          description: 'The currently active intent',
+          description: 'The currently active developer intent',
           mimeType: 'application/json'
         },
         {
           uri: 'intent://history',
           name: 'Intent History',
-          description: 'Historical intents',
+          description: 'Historical record of all captured intents',
           mimeType: 'application/json'
         },
         {
-          uri: 'intent://alignment/current',
-          name: 'Current Alignment',
-          description: 'Alignment analysis for staged changes',
+          uri: 'intent://fulfillment/current',
+          name: 'Current Fulfillment Analysis',
+          description: 'Intent fulfillment analysis for staged changes',
           mimeType: 'application/json'
         }
       ]
@@ -64,20 +76,47 @@ class Intent2CommitMCPServer {
     // Read resource
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const uri = request.params.uri;
+      this.logToStderr(`Reading resource: ${uri}`);
 
-      if (uri === 'intent://current') {
-        return { contents: [{ uri, mimeType: 'application/json', text: JSON.stringify(await this.getCurrentIntent()) }] };
+      try {
+        if (uri === 'intent://current') {
+          const intent = await this.getCurrentIntent();
+          return {
+            contents: [{
+              uri,
+              mimeType: 'application/json',
+              text: JSON.stringify(intent || { message: 'No intent captured' })
+            }]
+          };
+        }
+
+        if (uri === 'intent://history') {
+          const history = await this.getHistory();
+          return {
+            contents: [{
+              uri,
+              mimeType: 'application/json',
+              text: JSON.stringify({ intents: history })
+            }]
+          };
+        }
+
+        if (uri === 'intent://fulfillment/current') {
+          const fulfillment = await this.getFulfillment();
+          return {
+            contents: [{
+              uri,
+              mimeType: 'application/json',
+              text: JSON.stringify(fulfillment || { message: 'No analysis available' })
+            }]
+          };
+        }
+
+        throw new Error(`Unknown resource: ${uri}`);
+      } catch (error) {
+        this.logToStderr(`Error reading resource ${uri}: ${error.message}`);
+        throw error;
       }
-
-      if (uri === 'intent://history') {
-        return { contents: [{ uri, mimeType: 'application/json', text: JSON.stringify(await this.getHistory()) }] };
-      }
-
-      if (uri === 'intent://alignment/current') {
-        return { contents: [{ uri, mimeType: 'application/json', text: JSON.stringify(await this.getAlignment()) }] };
-      }
-
-      throw new Error(`Resource not found: ${uri}`);
     });
 
     // List tools
@@ -85,34 +124,55 @@ class Intent2CommitMCPServer {
       tools: [
         {
           name: 'capture_intent',
-          description: 'Capture developer intent before code changes',
+          description: 'Capture developer intent before writing code',
           inputSchema: {
             type: 'object',
             properties: {
-              message: { type: 'string', description: 'Intent message' },
-              template: { type: 'string', description: 'Template name' }
+              message: {
+                type: 'string',
+                description: 'The intent message describing what you plan to do'
+              },
+              template: {
+                type: 'string',
+                description: 'Optional template name (performance, security, feature, bugfix, etc.)'
+              }
             },
             required: ['message']
           }
         },
         {
-          name: 'check_alignment',
-          description: 'Check alignment between intent and changes',
+          name: 'check_fulfillment',
+          description: 'Check intent fulfillment for staged changes',
           inputSchema: {
             type: 'object',
             properties: {
-              intentId: { type: 'string', description: 'Intent ID (optional)' }
+              intentId: {
+                type: 'string',
+                description: 'Specific intent ID to check (optional, uses current if omitted)'
+              }
             }
           }
         },
         {
           name: 'commit_with_intent',
-          description: 'Commit with intent-aware message',
+          description: 'Commit staged changes with validated intent',
           inputSchema: {
             type: 'object',
             properties: {
-              force: { type: 'boolean', description: 'Force commit', default: false }
+              force: {
+                type: 'boolean',
+                description: 'Force commit even with low fulfillment score',
+                default: false
+              }
             }
+          }
+        },
+        {
+          name: 'detect_drift',
+          description: 'Detect files changed outside declared intent scope',
+          inputSchema: {
+            type: 'object',
+            properties: {}
           }
         }
       ]
@@ -121,30 +181,74 @@ class Intent2CommitMCPServer {
     // Call tool
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
+      this.logToStderr(`Calling tool: ${name}`);
 
-      if (name === 'capture_intent') {
-        return { content: [{ type: 'text', text: JSON.stringify(await this.captureIntent(args.message, args.template)) }] };
+      try {
+        if (name === 'capture_intent') {
+          const result = await this.captureIntent(args.message, args.template);
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        }
+
+        if (name === 'check_fulfillment') {
+          const result = await this.checkFulfillment(args.intentId);
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        }
+
+        if (name === 'commit_with_intent') {
+          const result = await this.commitWithIntent(args.force);
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        }
+
+        if (name === 'detect_drift') {
+          const result = await this.detectDrift();
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        }
+
+        throw new Error(`Unknown tool: ${name}`);
+      } catch (error) {
+        this.logToStderr(`Error calling tool ${name}: ${error.message}`);
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({ error: error.message })
+          }],
+          isError: true
+        };
       }
-
-      if (name === 'check_alignment') {
-        return { content: [{ type: 'text', text: JSON.stringify(await this.checkAlignment(args.intentId)) }] };
-      }
-
-      if (name === 'commit_with_intent') {
-        return { content: [{ type: 'text', text: JSON.stringify(await this.commitWithIntent(args.force)) }] };
-      }
-
-      throw new Error(`Tool not found: ${name}`);
     });
 
     // List prompts
     this.server.setRequestHandler(ListPromptsRequestSchema, async () => ({
       prompts: [
         {
-          name: 'review_alignment',
-          description: 'Review alignment and provide recommendations',
+          name: 'review_fulfillment',
+          description: 'Review intent fulfillment and provide recommendations',
           arguments: [
-            { name: 'includeHistory', description: 'Include history', required: false }
+            {
+              name: 'includeHistory',
+              description: 'Include recent intent history',
+              required: false
+            }
           ]
         }
       ]
@@ -152,25 +256,25 @@ class Intent2CommitMCPServer {
 
     // Get prompt
     this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-      if (request.params.name === 'review_alignment') {
+      if (request.params.name === 'review_fulfillment') {
         const intent = await this.getCurrentIntent();
-        const alignment = await this.getAlignment();
+        const fulfillment = await this.getFulfillment();
 
         return {
-          description: 'Review alignment',
+          description: 'Review intent fulfillment',
           messages: [
             {
               role: 'user',
               content: {
                 type: 'text',
-                text: `You are reviewing alignment between intent and code changes.\n\nIntent: "${intent?.message || 'None'}"\nScore: ${alignment?.score || 'N/A'}/100\n\nProvide recommendations.`
+                text: `Review the following intent fulfillment analysis:\n\nIntent: "${intent?.message || 'None'}"\nFulfillment Score: ${fulfillment?.score || 'N/A'}/100\n\nProvide specific recommendations for improving the commit or adjusting the intent.`
               }
             }
           ]
         };
       }
 
-      throw new Error(`Prompt not found: ${request.params.name}`);
+      throw new Error(`Unknown prompt: ${request.params.name}`);
     });
   }
 
@@ -191,7 +295,7 @@ class Intent2CommitMCPServer {
     return [];
   }
 
-  async getAlignment() {
+  async getFulfillment() {
     try {
       const { stdout } = await execAsync('intent preview --json', { cwd: this.workspaceRoot });
       return JSON.parse(stdout);
@@ -201,17 +305,20 @@ class Intent2CommitMCPServer {
   }
 
   async captureIntent(message, template) {
-    const cmd = template ? `intent --template ${template}` : `intent "${message}"`;
+    const cmd = template 
+      ? `intent --template ${template}` 
+      : `intent "${message.replace(/"/g, '\\"')}"`;
+    
     await execAsync(cmd, { cwd: this.workspaceRoot });
-    return this.getCurrentIntent();
+    return await this.getCurrentIntent();
   }
 
-  async checkAlignment(intentId) {
+  async checkFulfillment(intentId) {
     try {
       const { stdout } = await execAsync('intent preview --json', { cwd: this.workspaceRoot });
       return JSON.parse(stdout);
     } catch (error) {
-      throw new Error(`Alignment check failed: ${error.message}`);
+      throw new Error(`Fulfillment check failed: ${error.message}`);
     }
   }
 
@@ -221,15 +328,32 @@ class Intent2CommitMCPServer {
     return { success: true, output: stdout };
   }
 
+  async detectDrift() {
+    try {
+      const { stdout } = await execAsync('intent preview --json', { cwd: this.workspaceRoot });
+      const analysis = JSON.parse(stdout);
+      return {
+        driftDetected: analysis.driftDetected || false,
+        driftFiles: analysis.driftFiles || [],
+        warnings: analysis.warnings || []
+      };
+    } catch (error) {
+      throw new Error(`Drift detection failed: ${error.message}`);
+    }
+  }
+
   async start() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Intent2Commit MCP server running on stdio');
+    this.logToStderr('MCP server running on stdio');
   }
 }
 
 // Start server
 const server = new Intent2CommitMCPServer(process.env.WORKSPACE_ROOT);
-server.start().catch(console.error);
+server.start().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
 
 module.exports = { Intent2CommitMCPServer };

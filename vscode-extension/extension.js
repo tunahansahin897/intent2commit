@@ -1,13 +1,11 @@
 const vscode = require('vscode');
 const { exec } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 let statusBarItem;
-let currentIntentPanel;
+let outputChannel;
 
-/**
- * Activate extension
- */
 function activate(context) {
   console.log('Intent2Commit extension activated');
 

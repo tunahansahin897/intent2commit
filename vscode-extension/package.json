@@ -1,14 +1,11 @@
 {
-  "name": "intent2commit-vscode",
+  "name": "intent2commit",
   "displayName": "Intent2Commit",
-  "description": "Intent-driven Git workflow directly in VS Code",
-  "version": "0.1.0",
-  "publisher": "intent2commit",
+  "description": "Track intent in Git - preserve the 'why' behind code changes",
+  "version": "1.0.0",
+  "publisher": "andorabilisim",
+  "icon": "icon.png",
   "engines": {
-    "vscode": "^1.80.0"
-  },
-  "categories": [
-    "SCM Providers",
     "Other"
   ],
   "activationEvents": [

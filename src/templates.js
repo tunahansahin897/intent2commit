@@ -13,7 +13,13 @@ const templates = {
       { question: 'Approach/method?', key: 'approach' }
     ],
     generate: (answers) => 
-      `reduce ${answers.metric} by ${answers.target}% via ${answers.approach}`
+      `reduce ${answers.metric} by ${answers.target}% via ${answers.approach}`,
+    expectations: {
+      files: ['**/performance*', '**/cache*', '**/query*', '**/api*'],
+      tests: 'required',
+      risk: 'medium',
+      changeTypes: ['optimization', 'caching', 'indexing']
+    }
   },
 
   security: {
@@ -23,7 +29,13 @@ const templates = {
       { question: 'Mitigation approach?', key: 'mitigation' }
     ],
     generate: (answers) =>
-      `fix ${answers.concern} vulnerability by ${answers.mitigation}`
+      `fix ${answers.concern} vulnerability by ${answers.mitigation}`,
+    expectations: {
+      files: ['**/auth*', '**/middleware*', '**/security*', '**/crypto*'],
+      tests: 'required',
+      risk: 'high',
+      changeTypes: ['validation', 'sanitization', 'encryption']
+    }
   },
 
   feature: {
@@ -33,7 +45,13 @@ const templates = {
       { question: 'User benefit?', key: 'benefit' }
     ],
     generate: (answers) =>
-      `add ${answers.feature} to ${answers.benefit}`
+      `add ${answers.feature} to ${answers.benefit}`,
+    expectations: {
+      files: ['**/routes*', '**/controllers*', '**/services*', '**/components*'],
+      tests: 'recommended',
+      risk: 'medium',
+      changeTypes: ['new-feature', 'api-endpoint', 'ui-component']
+    }
   },
 
   bugfix: {
@@ -43,7 +61,13 @@ const templates = {
       { question: 'Root cause?', key: 'cause' }
     ],
     generate: (answers) =>
-      `fix ${answers.bug} caused by ${answers.cause}`
+      `fix ${answers.bug} caused by ${answers.cause}`,
+    expectations: {
+      files: ['**/*'],
+      tests: 'required',
+      risk: 'low',
+      changeTypes: ['bug-fix', 'edge-case', 'validation']
+    }
   },
 
   refactor: {
@@ -53,7 +77,13 @@ const templates = {
       { question: 'Why (improve what)?', key: 'reason' }
     ],
     generate: (answers) =>
-      `refactor ${answers.target} to improve ${answers.reason}`
+      `refactor ${answers.target} to improve ${answers.reason}`,
+    expectations: {
+      files: ['**/*'],
+      tests: 'optional',
+      risk: 'low',
+      changeTypes: ['refactor', 'cleanup', 'simplification']
+    }
   },
 
   cleanup: {
@@ -62,7 +92,13 @@ const templates = {
       { question: 'What are you cleaning up?', key: 'target' }
     ],
     generate: (answers) =>
-      `remove unused ${answers.target}`
+      `remove unused ${answers.target}`,
+    expectations: {
+      files: ['**/*'],
+      tests: 'optional',
+      risk: 'low',
+      changeTypes: ['removal', 'cleanup']
+    }
   },
 
   // NEW Templates v2
