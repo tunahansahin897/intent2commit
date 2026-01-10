@@ -1,0 +1,30 @@
+# Node modules
+node_modules/
+
+# Test directories
+demo-test/
+test/
+coverage/
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation artifacts (keep source docs)
+LIVE_TEST_RESULTS.md
+
+# Intent cache (local only)
+.intent-cache/
+
+# Build artifacts
+dist/
+build/
+*.tgz

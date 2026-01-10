@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "minAlignment": 50,
+    "maxFiles": 8,
+    "maxLines": 500,
+    "maxFilesForBugfix": 5
+  },
+  "penalties": {
+    "performance+logging": 10,
+    "performance+async": 15,
+    "security+noValidation": 10,
+    "bugfix+manyFiles": 5,
+    "largeScopeNonFeature": 10,
+    "tooManyFiles": 20
+  },
+  "ignore": [
+    "*.test.js",
+    "*.spec.js",
+    "__tests__/**",
+    "test/**",
+    "*.md"
+  ],
+  "display": {
+    "showBreakdown": true,
+    "showSuggestions": true,
+    "verboseWarnings": true
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "name": "intent2commit-vscode",
+  "displayName": "Intent2Commit",
+  "description": "Intent-driven Git workflow directly in VS Code",
+  "version": "0.1.0",
+  "publisher": "intent2commit",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:intent2commit.captureIntent",
+    "onView:intent2commitSidebar"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "intent2commit.captureIntent",
+        "title": "Capture Intent",
+        "category": "Intent2Commit"
+      },
+      {
+        "command": "intent2commit.preview",
+        "title": "Preview Intent & Changes",
+        "category": "Intent2Commit"
+      },
+      {
+        "command": "intent2commit.commit",
+        "title": "Commit with Intent",
+        "category": "Intent2Commit"
+      },
+      {
+        "command": "intent2commit.refresh",
+        "title": "Refresh",
+        "category": "Intent2Commit",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "intent2commit",
+          "title": "Intent2Commit",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "intent2commit": [
+        {
+          "id": "intent2commitSidebar",
+          "name": "Current Intent",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Intent2Commit",
+      "properties": {
+        "intent2commit.showAlignmentInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show alignment score in status bar"
+        },
+        "intent2commit.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-refresh on file save"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "eslint": "^8.0.0",
+    "vsce": "^2.15.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/intent2commit.git"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "intent",
+    "version control",
+    "decision tracking"
+  ],
+  "icon": "resources/icon.png"
+}

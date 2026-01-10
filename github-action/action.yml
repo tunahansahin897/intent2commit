@@ -1,0 +1,40 @@
+name: "Intent2Commit Alignment Check"
+description: "Check intent-change alignment in pull requests"
+author: "Intent2Commit Team"
+branding:
+  icon: "target"
+  color: "blue"
+
+inputs:
+  github-token:
+    description: "GitHub token for PR comments"
+    required: true
+  min-alignment-score:
+    description: "Minimum alignment score required (default: 70)"
+    required: false
+    default: "70"
+  fail-on-low-alignment:
+    description: "Fail the check if alignment is below threshold"
+    required: false
+    default: "false"
+  comment-on-pr:
+    description: "Post alignment report as PR comment"
+    required: false
+    default: "true"
+
+outputs:
+  alignment-score:
+    description: "The calculated alignment score"
+  alignment-status:
+    description: "Alignment status (excellent/good/fair/poor)"
+  report-url:
+    description: "URL to detailed alignment report"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    MIN_ALIGNMENT_SCORE: ${{ inputs.min-alignment-score }}
+    FAIL_ON_LOW_ALIGNMENT: ${{ inputs.fail-on-low-alignment }}
+    COMMENT_ON_PR: ${{ inputs.comment-on-pr }}
