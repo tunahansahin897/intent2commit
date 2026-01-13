@@ -16,14 +16,22 @@ const {
 
 program
   .name('intent')
-  .description('Intent-driven Git workflow tool')
-  .version('1.0.0');
+  .description('AI kod yazıyor. Kontrol sende kalıyor.')
+  .version('2.0.0');
 
 // Capture intent command
 program
-  .argument('[intent-message]', 'The intent behind your upcoming changes')
-  .option('-t, --template <name>', 'Use an intent template (list templates with --template list)')
+  .argument('[intent-message]', 'Niyetini tanımla')
+  .option('-t, --template <name>', 'Template kullan (list için: --template list)')
+  .option('-v, --vibeathon', 'Vibeathon mode - agresif drift kontrolü')
   .action(async (intentMessage, options) => {
+    // Vibeathon mode
+    if (options.vibeathon) {
+      const { captureVibeathonIntent } = require('../src/vibeathon');
+      await captureVibeathonIntent(intentMessage);
+      return;
+    }
+    
     // Template mode
     if (options.template) {
       await captureIntent(null, { template: options.template });
@@ -31,11 +39,12 @@ program
     }
     
     if (!intentMessage) {
-      console.log(chalk.yellow('Usage: intent "your intent message"'));
-      console.log(chalk.gray('\nExample: intent "reduce login latency by removing redundant queries"'));
-      console.log(chalk.gray('\nOr use a template:'));
+      console.log(chalk.yellow('Kullanım: intent "niyetini yaz"'));
+      console.log(chalk.gray('\nÖrnek: intent "login sayfasını hızlandır"'));
+      console.log(chalk.gray('\nTemplate kullan:'));
       console.log(chalk.cyan('  intent --template performance'));
-      console.log(chalk.cyan('  intent --template list'));
+      console.log(chalk.gray('\nVibeathon mode:'));
+      console.log(chalk.magenta('  intent --vibeathon "feature X ekle"'));
       process.exit(1);
     }
     
@@ -45,7 +54,7 @@ program
 // Commit with intent
 program
   .command('commit')
-  .description('Commit changes with intent alignment check')
+  .description('Intent ile commit yap')
   .action(async () => {
     await commitWithIntent();
   });
@@ -53,111 +62,23 @@ program
 // Preview intent and changes
 program
   .command('preview')
-  .description('Preview intent and staged changes before committing')
-  .action(async () => {
-    await previewIntent();
-  });
-
-// Show intent log
-program
-  .command('log')
-  .description('Show intent history')
-  .option('-f, --file <path>', 'Show intent history for specific file')
+  .description('Drift kontrolü ve preview')
+  .option('--json', 'JSON output')
+  .option('--vibeathon', 'Vibeathon mode preview')
   .action(async (options) => {
-    await showIntentLog(options.file);
-  });
-
-// Show intent statistics
-program
-  .command('stats')
-  .description('Show intent statistics and patterns')
-  .option('--team', 'Show team performance analytics')
-  .action(async (options) => {
-    await showIntentStats(options);
-  });
-
-// Explain a commit
-program
-  .command('explain <commit-hash>')
-  .description('Explain the intent behind a specific commit')
-  .action(async (commitHash) => {
-    await explainCommit(commitHash);
-  });
-
-// Install Git hooks
-program
-  .command('install-hooks')
-  .description('Install Git hooks to enforce intent capture')
-  .action(async () => {
-    await installHooks();
-  });
-
-// Uninstall Git hooks
-program
-
-const { program } = require('commander');
-const chalk = require('chalk');
-const { 
-  captureIntent, 
-  commitWithIntent, 
-  showIntentLog, 
-  showIntentStats, 
-  explainCommit, 
-  previewIntent,
-  installHooks,
-  uninstallHooks,
-  suggestIntent
-} = require('../src/index');
-
-program
-  .name('intent')
-  .description('Intent-driven Git workflow tool')
-  .version('1.0.0');
-
-// Capture intent command
-program
-  .argument('[intent-message]', 'The intent behind your upcoming changes')
-  .option('-t, --template <name>', 'Use an intent template (list templates with --template list)')
-  .action(async (intentMessage, options) => {
-    // Template mode
-    if (options.template) {
-      await captureIntent(null, { template: options.template });
+    if (options.vibeathon) {
+      const { previewVibeathon } = require('../src/vibeathon');
+      await previewVibeathon();
       return;
     }
-    
-    if (!intentMessage) {
-      console.log(chalk.yellow('Usage: intent "your intent message"'));
-      console.log(chalk.gray('\nExample: intent "reduce login latency by removing redundant queries"'));
-      console.log(chalk.gray('\nOr use a template:'));
-      console.log(chalk.cyan('  intent --template performance'));
-      console.log(chalk.cyan('  intent --template list'));
-      process.exit(1);
-    }
-    
-    await captureIntent(intentMessage);
-  });
-
-// Commit with intent
-program
-  .command('commit')
-  .description('Commit changes with intent alignment check')
-  .action(async () => {
-    await commitWithIntent();
-  });
-
-// Preview intent and changes
-program
-  .command('preview')
-  .description('Preview intent and staged changes before committing')
-  .action(async () => {
-    await previewIntent();
+    await previewIntent(options);
   });
 
 // Show intent log
 program
   .command('log')
-  .description('Show intent history')
-  .option('-f, --file <path>', 'Show intent history for specific file')
+  .description('Intent geçmişi')
+  .option('-f, --file <path>', 'Dosyaya göre filtrele')
   .action(async (options) => {
     await showIntentLog(options.file);
   });
@@ -165,8 +86,8 @@ program
 // Show intent statistics
 program
   .command('stats')
-  .description('Show intent statistics and patterns')
-  .option('--team', 'Show team performance analytics')
+  .description('İstatistikler')
+  .option('--team', 'Takım performansı')
   .action(async (options) => {
     await showIntentStats(options);
   });
@@ -174,7 +95,7 @@ program
 // Explain a commit
 program
   .command('explain <commit-hash>')
-  .description('Explain the intent behind a specific commit')
+  .description('Commit\'i açıkla')
   .action(async (commitHash) => {
     await explainCommit(commitHash);
   });
@@ -182,7 +103,7 @@ program
 // Install Git hooks
 program
   .command('install-hooks')
-  .description('Install Git hooks to enforce intent capture')
+  .description('Git hooks kur')
   .action(async () => {
     await installHooks();
   });
@@ -190,7 +111,7 @@ program
 // Uninstall Git hooks
 program
   .command('uninstall-hooks')
-  .description('Uninstall Intent2Commit Git hooks')
+  .description('Git hooks kaldır')
   .action(async () => {
     await uninstallHooks();
   });
@@ -198,58 +119,53 @@ program
 // Suggest intent
 program
   .command('suggest')
-  .description('Suggest intent based on staged changes (optional helper)')
+  .description('Değişikliklere göre niyet öner')
   .action(async () => {
     await suggestIntent();
   });
 
-// Level 1 Features: Intent branching
+// Intent branching
 program
   .command('branch <intent-message>')
-  .description('Create a new Git branch with intent metadata')
+  .description('Intent ile branch oluştur')
   .action(async (intentMessage) => {
     const { createIntentBranch } = require('../src/branching');
-    const { captureIntent } = require('../src/capture');
-    
-    // First capture intent
     const intent = await captureIntent(intentMessage);
-    
-    // Then create branch
     await createIntentBranch(intentMessage, intent.id);
   });
 
-// Level 1 Features: Edit intent
+// Edit intent
 program
   .command('edit <new-message>')
-  .description('Edit current intent')
-  .option('-r, --reason <reason>', 'Reason for editing')
+  .description('Mevcut niyeti düzenle')
+  .option('-r, --reason <reason>', 'Düzenleme sebebi')
   .action(async (newMessage, options) => {
     const { editIntent } = require('../src/capture');
     await editIntent(newMessage, options.reason);
   });
 
-// Level 1 Features: Undo intent
+// Undo intent
 program  
   .command('undo')
-  .description('Undo current intent (restore previous)')
+  .description('Son niyeti geri al')
   .action(async () => {
     const { undoIntent } = require('../src/capture');
     await undoIntent();
   });
 
-// Level 1 Features: View history
+// History
 program
   .command('history')
-  .description('View intent edit history')
+  .description('Niyet düzenleme geçmişi')
   .action(async () => {
     const { displayIntentHistory } = require('../src/capture');
     displayIntentHistory();
   });
 
-// Level 1 Features: List intent branches
+// List branches
 program
   .command('branches')
-  .description('List all intent-based branches')
+  .description('Intent branch\'lerini listele')
   .action(async () => {
     const { listIntentBranches } = require('../src/branching');
     await listIntentBranches();
