@@ -17,7 +17,7 @@ jobs:
 
       - name: Intent2Commit Fulfillment Check
         id: fulfillment
-        uses: andorabilisim/intent2commit-action@v1
+        uses: tunahansahin897/intent2commit-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           min-fulfillment-score: 70

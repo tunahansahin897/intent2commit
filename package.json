@@ -29,16 +29,16 @@
     "github-actions",
     "web-dashboard"
   ],
-  "author": "Andora Bilisim",
+  "author": "Tunahan Şahin",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/andorabilisim/intent2commit.git"
+    "url": "https://github.com/tunahansahin897/intent2commit.git"
   },
   "bugs": {
-    "url": "https://github.com/andorabilisim/intent2commit/issues"
+    "url": "https://github.com/tunahansahin897/intent2commit/issues"
   },
-  "homepage": "https://github.com/andorabilisim/intent2commit#readme",
+  "homepage": "https://github.com/tunahansahin897/intent2commit#readme",
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",

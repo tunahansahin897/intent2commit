@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Intent2Commit Fulfillment Check
-        uses: andorabilisim/intent2commit-action@v1
+        uses: tunahansahin897/intent2commit-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           min-fulfillment-score: 70
@@ -48,7 +48,7 @@ jobs:
 ### 1. Informational Only (Recommended for Start)
 
 ```yaml
-- uses: andorabilisim/intent2commit-action@v1
+- uses: tunahansahin897/intent2commit-action@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     fail-on-low-fulfillment: false
@@ -62,7 +62,7 @@ jobs:
 ### 2. Strict Fulfillment (Quality Gate)
 
 ```yaml
-- uses: andorabilisim/intent2commit-action@v1
+- uses: tunahansahin897/intent2commit-action@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     min-fulfillment-score: 75
@@ -77,7 +77,7 @@ jobs:
 ### 3. Zero Drift Tolerance (Production)
 
 ```yaml
-- uses: andorabilisim/intent2commit-action@v1
+- uses: tunahansahin897/intent2commit-action@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     min-fulfillment-score: 70
@@ -158,7 +158,7 @@ Posts comprehensive report:
 ```yaml
 - name: Check Intent
   id: intent
-  uses: andorabilisim/intent2commit-action@v1
+  uses: tunahansahin897/intent2commit-action@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -197,7 +197,7 @@ The following files appear to be outside the declared intent scope:
 **Recommendation:** Consider splitting this PR or updating the intent to include these changes.
 
 ---
-*Powered by [Intent2Commit](https://github.com/andorabilisim/intent2commit) - Preserving the "why" in Git history*
+*Powered by [Intent2Commit](https://github.com/tunahansahin897/intent2commit) - Preserving the "why" in Git history*
 ```
 
 ---
@@ -265,4 +265,4 @@ Find your team's sweet spot:
 
 ---
 
-**Full documentation:** [Intent2Commit GitHub Action](https://github.com/andorabilisim/intent2commit/tree/main/github-action)
+**Full documentation:** [Intent2Commit GitHub Action](https://github.com/tunahansahin897/intent2commit/tree/main/github-action)

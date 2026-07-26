@@ -1,6 +1,6 @@
 name: "Intent2Commit Fulfillment Check"
 description: "Check intent fulfillment and detect drift in pull requests"
-author: "Andora Bilisim"
+author: "Tunahan Şahin"
 branding:
   icon: "target"
   color: "blue"

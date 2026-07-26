@@ -245,7 +245,7 @@ Intent: reduce login latency by 40% via token caching
 Intent2Commit tracks the "why" behind code changes, ensuring decisions are preserved for future developers.
 
 ---
-*Powered by [Intent2Commit](https://github.com/andorabilisim/intent2commit)*`;
+*Powered by [Intent2Commit](https://github.com/tunahansahin897/intent2commit)*`;
 }
 
 function generateFulfillmentReport(intent, fulfillment, files) {
@@ -321,7 +321,7 @@ ${fulfillment.driftFiles.map(f => `- \`${f}\``).join('\n')}
   }
 
   report += `---
-*Powered by [Intent2Commit](https://github.com/andorabilisim/intent2commit) - Preserving the "why" in Git history*`;
+*Powered by [Intent2Commit](https://github.com/tunahansahin897/intent2commit) - Preserving the "why" in Git history*`;
 
   return report;
 }

@@ -123,7 +123,7 @@ AI asistanın artık niyetini biliyor.
 Her PR'da otomatik kontrol:
 
 ```yaml
-- uses: andorabilisim/intent2commit-action@v1
+- uses: tunahansahin897/intent2commit-action@v1
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     fail-on-drift: true
